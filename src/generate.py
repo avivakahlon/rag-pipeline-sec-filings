@@ -5,10 +5,10 @@ Usage:
     python src/generate.py --question "your question"
 """
 import argparse
-import os
+import sys
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from dotenv import load_dotenv
 
 from retrieve import retrieve
 
@@ -29,26 +29,60 @@ def build_context(docs):
 
 def generate_answer(question: str, k: int = 4):
     """
-    Retrieve relevant chunks, then generate a grounded answer.
-    Plug in your LLM of choice here (OpenAI, Anthropic, local model via HuggingFace).
+    Retrieve relevant chunks, then generate a grounded answer via gpt-4o-mini.
+
+    Raises:
+        FileNotFoundError / ValueError: propagated from retrieve() for a missing
+            vector store or empty question.
+        RuntimeError: for OpenAI API failures (auth, quota, network), with a
+            clear explanation instead of a raw stack trace.
     """
     docs = retrieve(question, k)
+
+    if not docs:
+        return "No relevant context was found for that question. Try rephrasing it."
+
     context = build_context(docs)
     prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     formatted_prompt = prompt.format(context=context, question=question)
 
-    from langchain_openai import ChatOpenAI
-    from dotenv import load_dotenv
-
     load_dotenv()
-    llm = ChatOpenAI(model="gpt-4o-mini")
-    response = llm.invoke(formatted_prompt)
-    return response.content
+
+    try:
+        from langchain_openai import ChatOpenAI
+
+        llm = ChatOpenAI(model="gpt-4o-mini")
+        response = llm.invoke(formatted_prompt)
+        return response.content
+    except ImportError:
+        raise RuntimeError(
+            "langchain-openai is not installed. Run `pip install -r requirements.txt`."
+        )
+    except Exception as e:
+        error_str = str(e).lower()
+        if "authentication" in error_str or "invalid_api_key" in error_str:
+            raise RuntimeError(
+                "OpenAI authentication failed. Check that OPENAI_API_KEY in your .env file "
+                "is set to a real, valid key."
+            )
+        elif "insufficient_quota" in error_str or "rate limit" in error_str or "429" in error_str:
+            raise RuntimeError(
+                "OpenAI API quota/rate limit hit. Check your account's billing/usage at "
+                "platform.openai.com, you may need to add a payment method or wait before retrying."
+            )
+        else:
+            raise RuntimeError(f"OpenAI API call failed: {e}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--question", type=str, required=True)
     args = parser.parse_args()
 
-    answer = generate_answer(args.question)
+    try:
+        answer = generate_answer(args.question)
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
     print(answer)
