@@ -34,6 +34,34 @@ SEC EDGAR 10-K filings (data/raw/)
     -> Streamlit UI (app.py)
 ```
 
+## Prompt Engineering
+
+The generation prompt (`src/generate.py`) is deliberately constrained:
+
+```
+Answer the question using only the context below.
+If the context doesn't contain the answer, say you don't know.
+
+Context:
+{context}
+
+Question: {question}
+
+Answer:
+```
+
+**Design decisions:**
+
+- **"Using only the context below"** forces the model to ground its answer in the retrieved chunks rather than falling back on GPT-4o-mini's general training knowledge about these companies. Without this constraint, the model could produce plausible-sounding but unverifiable answers, defeating the purpose of RAG. This is the single most important line in the prompt.
+
+- **"If the context doesn't contain the answer, say you don't know"** is an explicit anti-hallucination instruction. LLMs default to being helpful even when they shouldn't be, given an incomplete context, a model will often guess rather than admit uncertainty. This line trades a small amount of helpfulness for a large reduction in fabricated answers, the right tradeoff for a system meant to answer questions about legal/financial filings, where a confident wrong answer is worse than an honest "I don't know."
+
+- **Context placed before the question** follows a common pattern for grounding tasks: giving the model the reference material first, then the task, tends to produce better-grounded answers than the reverse ordering, since the model processes the relevant facts before it starts reasoning about what to answer.
+
+- **No few-shot examples.** For a single, well-defined task like this (answer strictly from context), zero-shot instruction is sufficient and keeps the prompt short, which matters for cost and latency at scale. Few-shot examples would be worth adding if the model's answer format needed to be more tightly controlled (e.g., forcing structured JSON output).
+
+**What I'd test next:** whether adding an explicit citation instruction ("cite which part of the context supports your answer") improves traceability without adding meaningful hallucination risk, an easy follow-up experiment given the Sources panel already surfaces the raw chunks separately in the Streamlit UI.
+
 ## Setup
 ```bash
 python3 -m venv venv
