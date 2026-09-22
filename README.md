@@ -139,6 +139,8 @@ rag-pipeline/
 - Added error handling across the pipeline: missing vector store, empty questions, OpenAI auth/quota failures, empty retrieval results
 - Expanded test suite from 2 to 11 tests, covering chunking behavior, deduplication logic, and error paths
 - Built a Streamlit front-end for interactive querying with source attribution
+- Built an automated LLM-as-judge evaluation harness (`eval_harness.py`) scoring factual grounding and flagging unsupported claims per answer
+- Diagnosed a retrieval failure surfaced by the harness; iterated through query expansion, temperature pinning, and company-name filtering, each with partial improvement
 
 ## Results
 
@@ -171,13 +173,31 @@ Ran 8 test questions across all three companies, checking whether the top-4 retr
 - Retrieval initially surfaced duplicate or near-duplicate chunks across several queries (Mastercard's 2024 and 2025 filings share large blocks of boilerplate language year over year). Fixed by over-fetching candidates (3x the target count) and filtering out chunks with ≥90% text similarity to ones already selected, verified by rerunning the duplicate-triggering query and confirming distinct results.
 - The 90% similarity threshold is a deliberate tradeoff: strict enough to catch true near-duplicates, loose enough to avoid discarding genuinely distinct chunks that happen to share vocabulary (e.g., two different company-overview chunks can still both surface if they're not near-identical).
 
+## Automated evaluation harness (LLM-as-judge)
+
+Beyond the manual 8-question relevance check above, added an automated evaluation harness (`eval_harness.py`) that uses a second GPT-4o-mini call to grade every generated answer for factual grounding against its retrieved chunks, flagging any claim not supported by the retrieved text.
+
+**Design:** each of the 8 test questions is run through the full pipeline, then a judge model scores the answer 1-5 on factual grounding and lists any unsupported claims. Anything scoring below 3 is flagged for human review and logged to `eval_results.csv` alongside the retrieved chunks, so failures are traceable back to the exact context that produced them.
+
+**What it caught:** the judge correctly identified a real retrieval gap. The question "What business segments does Mastercard operate in?" returned "I don't know" even though Mastercard's 10-K does disclose this. Investigating why surfaced a genuine architectural limitation:
+
+- Mastercard reports as a single reportable operating segment ("Payment Solutions"), described in narrative prose rather than the enumerated bullet format that retrieves reliably elsewhere in this corpus (consistent with the narrative-vs-enumerated retrieval gap already noted above).
+- Query expansion (rewriting the question into filing-style search terms like "reportable segments, operating segments, segment reporting" before embedding) measurably improved retrieval of the correct chunk in most runs.
+- Pinning generation to `temperature=0` removed one source of answer inconsistency.
+- Adding a company-name filter to exclude cross-company chunks (the retriever occasionally pulled JPMorgan segment language into a Mastercard question) provided partial but incomplete improvement.
+- Even after all three interventions, the correct answer surfaced in roughly 1 of 3 runs rather than consistently, tracing back to non-determinism in the underlying approximate-nearest-neighbor vector search itself, not something fixable at the prompt or query layer.
+
+**Takeaway:** an eval harness is only useful if it can fail, not just pass. This one did, and the resulting investigation was more informative than a clean result would have been: it isolated retrieval non-determinism as a distinct failure mode from retrieval relevance, which the original 8-question spot check wasn't designed to catch.
+
 ## Known limitations
 - `langchain-community` is being sunset by the LangChain team in favor of smaller standalone integration packages; this project still depends on it for document loaders. Migration would be a reasonable next step.
 - Fixed-size chunking (500 chars) doesn't account for document structure, results above suggest narrative-heavy sections retrieve less precisely than enumerated/bulleted ones. A semantic or section-aware chunking strategy is a natural improvement.
 - Small corpus (5 filings). Retrieval quality and duplicate-handling behavior would need re-validation at larger scale.
+- Vector retrieval exhibits run-to-run non-determinism on at least one question in this corpus (see Automated evaluation harness above); query expansion and generation-temperature fixes improved but did not fully eliminate this.
 
 ## Next steps
 - [ ] Semantic or document-structure-aware chunking
 - [ ] Expand corpus to more filers / filing types (10-Q, 8-K)
 - [ ] Migrate off `langchain-community` document loaders
 - [ ] Re-run the 8-question eval post-deduplication and update the relevance numbers
+- [ ] Investigate section-aware retrieval or reranking to resolve the remaining cross-document retrieval non-determinism
