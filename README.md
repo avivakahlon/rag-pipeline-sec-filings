@@ -168,12 +168,13 @@ Ran 8 test questions across all three companies, checking whether the top-4 retr
 **Overall: ~78% chunk relevance (25/32), measured before deduplication was added.**
 
 **Findings:**
-- JPMorgan's filings retrieved most reliably (16/16 across 4 questions), likely because its risk-factor sections use direct, enumerated bullet language that chunks cleanly.
-- Mastercard underperformed on 3 of its 4 questions, its filings are more narrative/prose-heavy, which appears to dilute topical focus within a fixed-size chunk.
-- Retrieval initially surfaced duplicate or near-duplicate chunks across several queries (Mastercard's 2024 and 2025 filings share large blocks of boilerplate language year over year). Fixed by over-fetching candidates (3x the target count) and filtering out chunks with ≥90% text similarity to ones already selected, verified by rerunning the duplicate-triggering query and confirming distinct results.
+- JPMorgan’s filings retrieved most reliably (12/12 across 3 questions), likely because its risk-factor sections use direct, enumerated bullet language that chunks cleanly.
+- Mastercard underperformed (6/12 chunks relevant across 3 questions), its filings are more narrative/prose-heavy, which appears to dilute topical focus within a fixed-size chunk.
+- Retrieval initially surfaced duplicate or near-duplicate chunks across several queries (Mastercard's 2024 and 2025 filings share large blocks of boilerplate language year over year). Fixed by over-fetching candidates (3x the target count) and filtering out chunks with ≥90% text similarity to ones already selected, spot-checked by rerunning the duplicate-triggering query.
 - The 90% similarity threshold is a deliberate tradeoff: strict enough to catch true near-duplicates, loose enough to avoid discarding genuinely distinct chunks that happen to share vocabulary (e.g., two different company-overview chunks can still both surface if they're not near-identical).
 
 ## Automated evaluation harness (LLM-as-judge)
+An automated check (`eval_harness.py`) scores each answer from 1 to 5 for factual grounding against the retrieved chunks, using gpt-4o-mini at temperature 0. On the same 8 questions, all 8 scored 5/5. This includes the Mastercard segments question, where the answer was "I don't know". The judge only checks the answer against the chunks it is given, so it does not catch retrieval failures. Results are in `eval_results.csv`.
 
 Beyond the manual 8-question relevance check above, added an automated evaluation harness (`eval_harness.py`) that uses a second GPT-4o-mini call to grade every generated answer for factual grounding against its retrieved chunks, flagging any claim not supported by the retrieved text.
 
@@ -189,11 +190,19 @@ Beyond the manual 8-question relevance check above, added an automated evaluatio
 
 **Takeaway:** an eval harness is only useful if it can fail, not just pass. This one did, and the resulting investigation was more informative than a clean result would have been: it isolated retrieval non-determinism as a distinct failure mode from retrieval relevance, which the original 8-question spot check wasn't designed to catch.
 
+## Query expansion and variability
+Retrieval rewrites the question into filing-style search terms with gpt-4o-mini before the embedding search. Testing one question over 10 runs: with expansion off, retrieval returned the same 4 chunks every time. With expansion on, the rewrite varied (3 distinct versions) even at temperature 0, which produced 3 distinct sets of retrieved chunks. The variation comes from the expansion step, not from the vector search.
+
+
 ## Known limitations
 - `langchain-community` is being sunset by the LangChain team in favor of smaller standalone integration packages; this project still depends on it for document loaders. Migration would be a reasonable next step.
 - Fixed-size chunking (500 chars) doesn't account for document structure, results above suggest narrative-heavy sections retrieve less precisely than enumerated/bulleted ones. A semantic or section-aware chunking strategy is a natural improvement.
 - Small corpus (5 filings). Retrieval quality and duplicate-handling behavior would need re-validation at larger scale.
 - Vector retrieval exhibits run-to-run non-determinism on at least one question in this corpus (see Automated evaluation harness above); query expansion and generation-temperature fixes improved but did not fully eliminate this.
+- Company filtering in `build_context()` is a simple keyword match on chunk text and has not been evaluated.
+- The judge sees chunks from a separate retrieval call than the one used for the answer.
+- The 78% relevance figure is from a manual, single-rater check before deduplication and before query expansion; it has not been re-run.
+- Only 10-K filings are included.
 
 ## Next steps
 - [ ] Semantic or document-structure-aware chunking
