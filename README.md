@@ -140,7 +140,7 @@ rag-pipeline/
 - Expanded test suite from 2 to 11 tests, covering chunking behavior, deduplication logic, and error paths
 - Built a Streamlit front-end for interactive querying with source attribution
 - Built an automated LLM-as-judge evaluation harness (`eval_harness.py`) scoring factual grounding and flagging unsupported claims per answer
-- Diagnosed a retrieval failure surfaced by the harness; iterated through query expansion, temperature pinning, and company-name filtering, each with partial improvement
+- Built an LLM-as-judge harness. It did not flag the Mastercard retrieval failure (found by reading the answers), so I then added query expansion, temperature 0 and a keyword company filter; none of these changes has been measured
 
 ## Results
 
@@ -149,7 +149,7 @@ rag-pipeline/
 
 **A:** *"The main risk factors facing the company include the ability to withstand disruptions from failures of operational systems or third parties, the ability to defend against cyber attacks and unauthorized access to information, and other risks and uncertainties detailed in Part I, Item 1A: Risk Factors in JPMorganChase's 2025 Form 10-K. Additionally, the company faces intense competition in its industry."*
 
-Grounded correctly in the retrieved risk-factor chunks, no hallucinated content.
+Checked by eye against the retrieved risk-factor chunks.
 
 ### Retrieval evaluation
 Ran 8 test questions across all three companies, checking whether the top-4 retrieved chunks were actually relevant to each question:
@@ -180,15 +180,15 @@ Beyond the manual 8-question relevance check above, added an automated evaluatio
 
 **Design:** each of the 8 test questions is run through the full pipeline, then a judge model scores the answer 1-5 on factual grounding and lists any unsupported claims. Anything scoring below 3 is flagged for human review and logged to `eval_results.csv` alongside the retrieved chunks, so failures are traceable back to the exact context that produced them.
 
-**What it caught:** the judge correctly identified a real retrieval gap. The question "What business segments does Mastercard operate in?" returned "I don't know" even though Mastercard's 10-K does disclose this. Investigating why surfaced a genuine architectural limitation:
+**What happened:** the judge did not catch the retrieval gap. The question "What business segments does Mastercard operate in?" returned "I don't know" and still scored 5/5, because that answer was consistent with the chunks it was given. I found the failure by reading the answers in `eval_results.csv`. I then made three changes, none of which I measured:
 
-- Mastercard reports as a single reportable operating segment ("Payment Solutions"), described in narrative prose rather than the enumerated bullet format that retrieves reliably elsewhere in this corpus (consistent with the narrative-vs-enumerated retrieval gap already noted above).
-- Query expansion (rewriting the question into filing-style search terms like "reportable segments, operating segments, segment reporting" before embedding) measurably improved retrieval of the correct chunk in most runs.
-- Pinning generation to `temperature=0` removed one source of answer inconsistency.
-- Adding a company-name filter to exclude cross-company chunks (the retriever occasionally pulled JPMorgan segment language into a Mastercard question) provided partial but incomplete improvement.
-- Even after all three interventions, the correct answer surfaced in roughly 1 of 3 runs rather than consistently, tracing back to non-determinism in the underlying approximate-nearest-neighbor vector search itself, not something fixable at the prompt or query layer.
+- Query expansion: the question is rewritten into filing-style search terms (for example "reportable segments, operating segments, segment reporting") before the embedding search, to close the vocabulary gap between plain-English questions and how 10-Ks are written.
+- Temperature 0 in generation and in the expansion call.
+- A keyword company filter on the retrieved chunks (see Known limitations).
 
-**Takeaway:** an eval harness is only useful if it can fail, not just pass. This one did, and the resulting investigation was more informative than a clean result would have been: it isolated retrieval non-determinism as a distinct failure mode from retrieval relevance, which the original 8-question spot check wasn't designed to catch.
+The retrieval variability I saw traces to the query-expansion step, not the vector search (see the next section).
+
+**Takeaway:** an LLM judge that grades an answer against the chunks it was handed cannot detect a retrieval failure. Catching one needs separate retrieval checks, such as a manual relevance review or labeled expected sources.
 
 ## Query expansion and variability
 Retrieval rewrites the question into filing-style search terms with gpt-4o-mini before the embedding search. Testing one question over 10 runs: with expansion off, retrieval returned the same 4 chunks every time. With expansion on, the rewrite varied (3 distinct versions) even at temperature 0, which produced 3 distinct sets of retrieved chunks. The variation comes from the expansion step, not from the vector search.
@@ -198,7 +198,7 @@ Retrieval rewrites the question into filing-style search terms with gpt-4o-mini 
 - `langchain-community` is being sunset by the LangChain team in favor of smaller standalone integration packages; this project still depends on it for document loaders. Migration would be a reasonable next step.
 - Fixed-size chunking (500 chars) doesn't account for document structure, results above suggest narrative-heavy sections retrieve less precisely than enumerated/bulleted ones. A semantic or section-aware chunking strategy is a natural improvement.
 - Small corpus (5 filings). Retrieval quality and duplicate-handling behavior would need re-validation at larger scale.
-- Vector retrieval exhibits run-to-run non-determinism on at least one question in this corpus (see Automated evaluation harness above); query expansion and generation-temperature fixes improved but did not fully eliminate this.
+- Run-to-run variation in retrieval came from the query-expansion step, not the vector search (see Query expansion and variability). The effect of the expansion, temperature and company-filter changes has not been measured.
 - Company filtering in `build_context()` is a simple keyword match on chunk text and has not been evaluated.
 - The judge sees chunks from a separate retrieval call than the one used for the answer.
 - The 78% relevance figure is from a manual, single-rater check before deduplication and before query expansion; it has not been re-run.
