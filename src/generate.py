@@ -23,7 +23,20 @@ Question: {question}
 Answer:"""
 
 
-def build_context(docs):
+COMPANY_NAMES = ["Mastercard", "JPMorgan", "Visa"]
+
+def _mentioned_company(question: str):
+    for name in COMPANY_NAMES:
+        if name.lower() in question.lower():
+            return name
+    return None
+
+def build_context(docs, question: str = ""):
+    company = _mentioned_company(question)
+    if company:
+        filtered = [d for d in docs if company.lower() in d.page_content.lower()]
+        if filtered:
+            docs = filtered
     return "\n\n".join(doc.page_content for doc in docs)
 
 
@@ -42,7 +55,7 @@ def generate_answer(question: str, k: int = 4):
     if not docs:
         return "No relevant context was found for that question. Try rephrasing it."
 
-    context = build_context(docs)
+    context = build_context(docs, question)
     prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     formatted_prompt = prompt.format(context=context, question=question)
 
@@ -51,7 +64,7 @@ def generate_answer(question: str, k: int = 4):
     try:
         from langchain_openai import ChatOpenAI
 
-        llm = ChatOpenAI(model="gpt-4o-mini")
+        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         response = llm.invoke(formatted_prompt)
         return response.content
     except ImportError:

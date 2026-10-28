@@ -1,0 +1,69 @@
+timestamp,question,answer,num_chunks_retrieved,retrieved_chunks_preview,score,unsupported_claims,reasoning,needs_review
+2026-09-21T17:30:11,What are the main risk factors facing JPMorgan?,"The main risk factors facing JPMorgan include:
+
+1. Losses on market-making positions or in the investment portfolio.
+2. Reduced liquidity and capital levels.
+3. Increased allowance for credit losses or higher net charge-offs.
+4. Loss of confidence in JPMorganChase's ability to protect against operational disruptions.
+5. Significant exposure to litigation and penalties.
+6. Reputational harm.
+7. Operational risks from interconnectedness with clients, customers, and external parties.
+8. Vulnerability to disruptions from failures of operational systems or cyber attacks.",4,"These risks could become highly correlated or combine in unexpected ways under certain circumstances, including geopolitically challenging situations in regions such as Russia, the Middle East and Chi ||| •
+loss of confidence in the ability of JPMorganChase, or financial institutions generally, to protect against and withstand operational disruptions
+•
+significant exposure to litigation and penalties,  ||| •
+Ability of the Firm to withstand disruptions that may be caused by any failure of its operational systems or those of third parties;
+•
+Ability of the Firm to effectively defend itself against cyber  ||| •
+materially and adversely affect JPMorganChase’s business and results of operations or financial condition
+•
+restrict its ability to access the capital markets
+•
+require it to expend significant reso",5,,Every claim in the generated answer is directly supported by the retrieved text.,False
+2026-09-21T17:30:17,What business segments does Mastercard operate in?,I don't know.,4,"Mastercard is a technology company in the global payments industry.  We connect consumers, financial institutions, merchants, governments, digital partners, businesses and other organizations worldwid ||| Mastercard Incorporated and its consolidated subsidiaries, including Mastercard International Incorporated (“Mastercard International” and together with Mastercard Incorporated, “Mastercard” or the “C ||| our switching activities and other processing in terms of how we go to market, make decisions and organize our structure.  Examples of other markets where Mastercard is formally overseen include Austr ||| which includes supervisions and examination requirements.  In addition, EU legislation requires us to separate our scheme activities (brand, products, franchise and licensing) from our switching activ",5,,The answer accurately reflects the lack of specific information in the retrieved chunks regarding Mastercard's business segments.,False
+2026-09-21T17:30:23,What risks does Visa identify related to competition?,"Visa identifies several risks related to competition, including the need to adjust local rules and practices, develop or customize aspects of payment services, modify the economics or pricing of offerings, and enter into business arrangements that may be less protective of Visa's proprietary technology and interests. Additionally, competitors may have government support that limits Visa's ability to compete in certain regions, and actions against Visa could influence further regulatory or legal challenges.",4,"parties, including competitors, in an undesirable manner. As discussed in more detail below, we may face differing rules and regulations in matters like interchange reimbursement rates, preferred rout ||| As the competitive landscape is quickly evolving, we may not be able to foresee or respond sufficiently to emerging risks associated with new businesses, products, services and practices. We may be as ||| some cases, these competitors have the support of government mandates that prohibit, limit or otherwise hinder our ability to compete for transactions within certain countries and regions. For more in ||| actions or their outcomes may also influence regulators, investigators, governments or civil litigants in the same or other jurisdictions, which may lead to additional actions against Visa. Finally, w",5,,Every claim in the answer is directly supported by the retrieved text.,False
+2026-09-21T17:30:29,How does JPMorgan describe its approach to cybersecurity risk?,"JPMorgan describes its approach to cybersecurity risk as one where it acknowledges it does not have control over the cybersecurity of its clients, customers, counterparties, and third-party service providers. It also recognizes the evolving nature of cyber threats, stating that it cannot guarantee detection of threats or effective prevention measures, particularly as cyber attack techniques become more sophisticated. Additionally, the company highlights the importance of timely identification and addressing of emerging threats and vulnerabilities to enhance its cybersecurity controls.",4,"JPMorgan Chase & Co./2025 Form 10-K
+147
+Management’s discussion and analysis
+Cybersecurity risk
+Cybersecurity risk is the risk of harm or loss resulting from misuse or abuse of technology or the unaut ||| •
+JPMorganChase does not have control over the cybersecurity of the systems of the numerous clients, customers, counterparties and third-party service providers with which it does business.
+The cybers ||| JPMorganChase cannot guarantee that it will always detect cybersecurity threats to its systems or implement effective preventive measures against those threats. The reasons for this include:
+•
+the tec ||| JPMorganChase could become increasingly vulnerable to cyber attacks if it does not, in a timely manner, identify and address emerging threats, known vulnerabilities or shortcomings in its cybersecurit",5,,Every claim in the answer is directly supported by the retrieved text.,False
+2026-09-21T17:30:34,What does Mastercard say about regulatory risk?,"Mastercard states that regulations that directly or indirectly apply to the company as a result of its participation in the global payments industry may materially and adversely affect its overall business and results of operations. Additionally, failure to comply with the applicable laws and regulations could result in fines, sanctions, civil damages, or other penalties, which could also materially and adversely affect the company's business and impact its brand and reputation.",4,"As part of its policies, Mastercard requires certain customers that do not meet the Company’s risk standards to enter into risk mitigation arrangements, including cash collateral and/or forms of credi ||| Other Regulation 
+Regulations that directly or indirectly apply to Mastercard as a result of our participation in the global payments industry may materially and adversely affect our overall business  ||| MASTERCARD 2025 FORM 10-K     
+27
+PART I
+ITEM 1A. RISK FACTORS
+changes, which could negatively impact us.  Moreover, failure to comply with the laws and regulations to which we are subject could resul ||| MASTERCARD 2025 FORM 10-K     
+62
+PART II
+ITEM 7A. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK
+Item 7A. Quantitative and qualitative disclosures about market risk",5,,Every claim in the answer is directly supported by the retrieved text.,False
+2026-09-21T17:30:40,What is Visa's business model or how does it generate revenue?,"Visa generates revenue by providing payment services and value-added services, including advisory and marketing services. It earns revenue from client usage of its payment services and charges fees for the use of its brand and technology, account holder services, certification, and licensing. Other revenue sources include incentives for clients, such as cash payments, fee discounts, and rebates, to encourage the use of Visa products.",4,"ITEM 1.    Business
+OVERVIEW
+Visa is one of the world’s leaders in digital payments. Our purpose is to uplift everyone, everywhere by being the best way to pay and be paid. We facilitate global commer ||| segments, adapt to regulatory changes, and expand their use and acceptance of Visa products and services. These include up-front cash payments, fee discounts, rebates, credits, performance-based incen ||| Other revenue consists mainly of value-added services related to advisory, marketing and certain card benefits; license fees for use of the Visa brand or technology; and fees for account holder servic ||| REVENUE
+Earned for services provided in support of client usage of Visa’s payment services and value-added services related to certain Issuing Solutions
+OTHER REVENUE
+Consists mainly of value-added se",5,,Every claim in the answer is directly supported by the retrieved text.,False
+2026-09-21T17:30:47,What operational risks does JPMorgan identify?,"JPMorgan identifies operational risks related to the loss of confidence in the ability of financial institutions to protect against operational disruptions, significant exposure to litigation and penalties, reputational harm, and the risks associated with interconnectedness with clients, customers, and external parties. Additionally, failures to identify operational risks or implement adequate controls may hinder business operations, result in potential liability, impair liquidity, weaken competitive standing, and increase compliance, operational, or integration costs.",4,"•
+loss of confidence in the ability of JPMorganChase, or financial institutions generally, to protect against and withstand operational disruptions
+•
+significant exposure to litigation and penalties,  ||| Any significant failure by JPMorganChase to identify the operational risks associated with these types of changes, or to implement adequate controls to mitigate those risks, has resulted and could in  ||| JPMorganChase’s financial condition or results of operations could be materially and adversely affected by any significant inadequacy or lapse in its risk management framework, governance structure, p ||| •
+Capital
+ risks, including the risk that JPMorganChase’s ability to distribute capital to shareholders or to support its business activities could be limited if it does not satisfy applicable regulat",5,,Every claim in the generated answer is directly supported by the retrieved text.,False
+2026-09-21T17:30:52,What competitive pressures does Mastercard face?,"Mastercard faces competitive pressures from payments networks such as Visa, American Express, JCB, China UnionPay, and Discover. These competitors offer a range of card-based payment products and may have more market share in certain jurisdictions, along with different business models that could provide them advantages in pricing, technology, or regulatory compliance.",4,"MASTERCARD 2024 FORM 10-K     
+33
+PART I
+ITEM 1A. RISK FACTORS
+bargaining power and lead to lower prices and/or more favorable terms for our customers.  These developments could materially and adverse ||| MASTERCARD 2025 FORM 10-K     
+17
+PART I
+ITEM 1. BUSINESS
+Develop and retain talent.
+  We develop and retain our employees, with a focus on staying competitive and being responsive to changing market  ||| We compete worldwide with payments networks such as Visa, American Express, JCB, China UnionPay and Discover, among others.  These competitors tend to offer a range of card-based payment products.  So ||| MASTERCARD 2025 FORM 10-K     
+39
+PART I
+ITEM 1A. RISK FACTORS
+We rely on our people leaders to display integrity and decency, as role models for the Mastercard Way.  To the extent our leaders behave ",5,,Every claim in the answer is directly supported by the retrieved text.,False
